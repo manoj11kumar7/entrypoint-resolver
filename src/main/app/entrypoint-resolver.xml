@@ -19,6 +19,7 @@ http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee
         <http:listener config-ref="HTTP_Listener_Configuration" path="/entrypoint" doc:name="HTTP"/>
         
         <set-payload value="#[message.inboundProperties.'http.query.params'.info]" doc:name="Set Payload"/>
+        <logger message="The payload is #[payload]" level="INFO" doc:name="Logger"/>
         <choice doc:name="Choice">
             <when expression="message.inboundProperties.'http.query.params'.type == 'INR'">
                 <set-variable variableName="test" value="getStockPriceINR" doc:name="Variable"/>
