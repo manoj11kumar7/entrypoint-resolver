@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:ws="http://www.mulesoft.org/schema/mule/ws" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/ws http://www.mulesoft.org/schema/mule/ws/current/mule-ws.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd">
+    <http:listener-config name="HTTP_Listener_Configuration" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <ee:object-store-caching-strategy name="Caching_Strategy" doc:name="Caching Strategy">
+        <managed-store storeName="info" persistent="true" maxEntries="1000" entryTTL="5000" expirationInterval="1000"/>
+    </ee:object-store-caching-strategy>
+    <ws:consumer-config name="Web_Service_Consumer" wsdlLocation="http://ilt.mulesoft-training.com/essentials/delta?wsdl" service="TicketServiceService" port="TicketServicePort" serviceAddress="http://ilt.mulesoft-training.com/essentials/delta" doc:name="Web Service Consumer"/>
+    <flow name="entrypoint-resolverFlow">
+        <http:listener config-ref="HTTP_Listener_Configuration" path="/entrypoint" doc:name="HTTP"/>
+        
+        <set-payload value="#[message.inboundProperties.'http.query.params'.info]" doc:name="Set Payload"/>
+        <choice doc:name="Choice">
+            <when expression="message.inboundProperties.'http.query.params'.type == 'INR'">
+                <set-variable variableName="test" value="getStockPriceINR" doc:name="Variable"/>
+            </when>
+            <otherwise>
+            	 <set-variable variableName="test" value="getStockPriceUSD" doc:name="Variable"/>
+            	
+            </otherwise>
+        </choice>
+        <component class="com.xerox.StockwithTwoMethods" doc:name="Java">
+            <property-entry-point-resolver property="test"/>
+        </component>
+    </flow>
+</mule>
